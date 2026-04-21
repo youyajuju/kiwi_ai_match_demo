@@ -52,7 +52,7 @@ import {
 } from 'lucide-react';
 import { INITIAL_CLIENTS, INITIAL_CONTRACTS } from '../mockData';
 import { Client, Contract, AIStrategy, MeterConfig, MeterStatus, ContractStatus } from '../types';
-import { calculateContractStatus, formatEnergy, formatPower, getStatusColor, getStatusDotColor } from '../src/utils/contractUtils';
+import { calculateContractStatus, formatEnergy, formatPower, getStatusColor, getStatusDotColor } from '../utils/contractUtils';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useLanguage } from '../LanguageContext';

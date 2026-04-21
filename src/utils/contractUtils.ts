@@ -1,4 +1,4 @@
-import { Contract, ContractStatus } from '../../types';
+import { Contract, ContractStatus } from '../types';
 
 /**
  * 判定合約狀態邏輯 (Contract Status Logic)

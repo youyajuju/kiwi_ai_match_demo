@@ -20,7 +20,7 @@ import { Link } from 'react-router-dom';
 import { MONITORED_METERS } from '../mockData';
 import { MeterStatus } from '../types';
 import { useLanguage } from '../LanguageContext';
-import { formatEnergy } from '../src/utils/contractUtils';
+import { formatEnergy } from '../utils/contractUtils';
 
 const Monitoring: React.FC = () => {
   const { t, language } = useLanguage();

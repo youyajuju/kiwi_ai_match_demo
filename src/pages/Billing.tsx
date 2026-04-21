@@ -44,7 +44,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useLanguage } from '../LanguageContext';
-import { formatEnergy, formatPower } from '../src/utils/contractUtils';
+import { formatEnergy, formatPower } from '../utils/contractUtils';
 
 // --- Utility for Tailwind classes ---
 function cn(...inputs: ClassValue[]) {

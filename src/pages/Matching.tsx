@@ -51,7 +51,7 @@ import {
 } from '../mockData';
 import { NodeType, AIStrategy, MeterStatus } from '../types';
 import { useLanguage } from '../LanguageContext';
-import { formatEnergy } from '../src/utils/contractUtils';
+import { formatEnergy } from '../utils/contractUtils';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
