@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #9CB13A;
+  --primary-dark: #8A9D33;
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  @apply bg-[#F8F9FA] text-[#54585a];
+}
+
+/* Custom transitions and scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+.sankey-node {
+  transition: opacity 0.3s;
+}
+.sankey-link {
+  transition: stroke-opacity 0.3s;
+}
