@@ -670,7 +670,7 @@ if (!selectedCustomer || !details) return null;
       <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 shadow-sm">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h3 className="text-xl font-black text-gray-900">{isConsumer ? "每日用電與獲配佔比分析" : t.billing.wheelingTrend}</h3>
+            <h3 className="text-xl font-black text-gray-900">{isConsumer ? t.billing.dailyUsageAllocationAnalysis : t.billing.wheelingTrend}</h3>
             {isConsumer && (
               <p className="text-xs font-bold text-gray-400 mt-1">
                 {t.billing.peakBenefit}
@@ -796,7 +796,6 @@ if (!selectedCustomer || !details) return null;
                     return null;
                   }}
                 />
-                <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
                 <Bar dataKey="matched" name={t.billing.actualMatchedTransfer} fill="#38bdf8" radius={[4, 4, 0, 0]} barSize={20} />
                 <Line type="monotone" dataKey="actual" name={t.billing.actualMonthlyGeneration} stroke="#F59E0B" strokeWidth={3} dot={{ r: 3, fill: '#F59E0B', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
               </ComposedChart>

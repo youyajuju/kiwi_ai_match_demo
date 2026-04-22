@@ -1252,18 +1252,6 @@ const Assets: React.FC = () => {
                             </h5>
                             <div className="flex gap-4">
                               <button 
-                                onClick={handleDownloadMeterTemplate}
-                                className="flex items-center gap-1.5 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-gray-600 transition-colors"
-                              >
-                                <Download size={14} /> {t.assets.downloadTemplate}
-                              </button>
-                              <button 
-                                onClick={() => handleImportMeters(contract.id)}
-                                className="flex items-center gap-1.5 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-gray-600 transition-colors"
-                              >
-                                <FileUp size={14} /> {t.assets.batchImport}
-                              </button>
-                              <button 
                                 onClick={() => handleOpenAddMeter(contract)}
                                 className="flex items-center gap-1.5 text-[#9CB13A] font-black text-[10px] uppercase tracking-widest hover:text-[#8A9D33] transition-colors"
                               >

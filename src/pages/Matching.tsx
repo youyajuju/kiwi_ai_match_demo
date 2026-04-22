@@ -27,7 +27,9 @@ import {
   Maximize2,
   RefreshCw,
   Settings,
-  Search
+  Search,
+  Play,
+  Pause
 } from 'lucide-react';
 import { 
   ComposedChart,
@@ -69,6 +71,7 @@ interface SankeyProps {
 }
 
 const SankeyDiagram: React.FC<SankeyProps> = ({ nodes, links, onLinkClick, formattedTime }) => {
+  const { language } = useLanguage();
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [hoveredLink, setHoveredLink] = useState<any | null>(null);
@@ -92,7 +95,7 @@ const SankeyDiagram: React.FC<SankeyProps> = ({ nodes, links, onLinkClick, forma
     const sankey = d3Sankey()
       .nodeId((d: any) => d.id)
       .nodeWidth(16)
-      .nodePadding(60)
+      .nodePadding(40)
       .nodeAlign(sankeyCenter)
       .nodeSort((a: any, b: any) => {
          // Ensure B-OTHER is strictly placed at the bottom
@@ -114,6 +117,14 @@ const SankeyDiagram: React.FC<SankeyProps> = ({ nodes, links, onLinkClick, forma
 
     try {
       const { nodes: sNodes, links: sLinks } = sankey(data as any);
+
+      // Validate coordinates to avoid NaN issues
+      sNodes.forEach((n: any) => {
+        if (isNaN(n.x0)) n.x0 = 0;
+        if (isNaN(n.x1)) n.x1 = 0;
+        if (isNaN(n.y0)) n.y0 = 0;
+        if (isNaN(n.y1)) n.y1 = 0;
+      });
 
       // Fix links targeting B-OTHER so they converge exactly to its center
       const otherNode = sNodes.find((n: any) => n.id === 'B-OTHER');
@@ -149,6 +160,7 @@ const SankeyDiagram: React.FC<SankeyProps> = ({ nodes, links, onLinkClick, forma
         .selectAll("path")
         .data(sLinks)
         .join("path")
+        .filter((d: any) => !isNaN(d.width) && d.width > 0)
         .attr("d", sankeyLinkHorizontal())
         .attr("stroke", (d: any, i: number) => `url(#grad-${i})`)
         .attr("stroke-width", (d: any) => {
@@ -240,7 +252,12 @@ const SankeyDiagram: React.FC<SankeyProps> = ({ nodes, links, onLinkClick, forma
     } catch (err) {
       console.warn("Sankey render error:", err);
     }
-  }, [nodes, links]);
+  }, [nodes, links, language]); // Added language to dependency to force refresh on language change
+
+  // Safeguard: if nodes exist but no links, we might still want to render nodes, 
+  // but if links are empty, D3-sankey might produce NaN for some attributes.
+  // The main component now handles links.length === 0 separately.
+
 
   return <svg ref={svgRef} className="w-full h-full" />;
 };
@@ -252,6 +269,36 @@ const LoadingOverlay = ({ message }: { message: string }) => (
     <p className="text-xs font-black text-gray-400 uppercase tracking-widest animate-pulse">{message}</p>
   </div>
 );
+
+const EmptySankeyState = () => {
+  const { t } = useLanguage();
+  
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-500 min-h-[460px]">
+      <div className="relative mb-8">
+        <div className="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100 shadow-inner">
+          <Activity className="text-gray-300 w-12 h-12" />
+        </div>
+        <div className="absolute -top-2 -right-2 w-10 h-10 bg-white rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center">
+          <Zap className="text-gray-200 w-5 h-5" />
+        </div>
+      </div>
+      <div className="text-center space-y-2 max-w-sm">
+        <h3 className="text-lg font-black text-[#54585a]">
+          {t.matching.noMatchingData}
+        </h3>
+        <p className="text-xs font-bold text-gray-400 leading-relaxed px-6">
+          {t.matching.noMatchingDataDesc}
+        </p>
+      </div>
+      <div className="mt-8 flex gap-2">
+         <div className="w-1.5 h-1.5 rounded-full bg-gray-200 animate-bounce [animation-delay:-0.3s]"></div>
+         <div className="w-1.5 h-1.5 rounded-full bg-gray-200 animate-bounce [animation-delay:-0.15s]"></div>
+         <div className="w-1.5 h-1.5 rounded-full bg-gray-200 animate-bounce"></div>
+      </div>
+    </div>
+  );
+};
 
 const Matching: React.FC = () => {
   const { t, language } = useLanguage();
@@ -460,7 +507,7 @@ const Matching: React.FC = () => {
         if (found) searchedNodeId = found.id;
     }
 
-    const MAX_NODES = 15;
+    const MAX_NODES = 10;
     let displayNodes = [...rawNodes];
     let displayLinks = [...rawLinks];
     
@@ -603,11 +650,15 @@ const Matching: React.FC = () => {
       const data = payload[0].payload;
       const [year, month] = selectedAnalysisMonth.split('/');
       
+      const dateStr = language === 'zh' 
+        ? `${year}年 ${month}月 ${data.day}日`
+        : new Date(parseInt(year), parseInt(month) - 1, data.day).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+      
       return (
         <div className="bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-gray-100 shadow-2xl min-w-[240px] space-y-3">
           <div className="border-b border-gray-50 pb-2">
             <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider">
-              {year}年 {month}月 {data.day}日
+              {dateStr}
             </p>
           </div>
 
@@ -615,7 +666,7 @@ const Matching: React.FC = () => {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
-                <span className="text-[10px] font-bold text-gray-500">實際達成總轉供量</span>
+                <span className="text-[10px] font-bold text-gray-500">{t.matching.actualUsage}</span>
               </div>
               <span className="text-[11px] font-black font-mono text-gray-900">{formatEnergy(data.demand)}</span>
             </div>
@@ -623,15 +674,15 @@ const Matching: React.FC = () => {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
-                <span className="text-[10px] font-bold text-gray-500">實際發電量</span>
+                <span className="text-[10px] font-bold text-gray-500">{t.matching.actualGeneration}</span>
               </div>
               <span className="text-[11px] font-black font-mono text-gray-900">{formatEnergy(data.supply)}</span>
             </div>
 
             <div className="pt-2 border-t border-gray-50 flex justify-between items-center">
-              <span className="text-[10px] font-black text-gray-400 uppercase">匹配分析</span>
+              <span className="text-[10px] font-black text-gray-400 uppercase">{t.matching.matchingAnalysis}</span>
               <span className={`text-[11px] font-black font-mono ${data.gap >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {data.gap >= 0 ? '匹配餘電' : '匹配缺口'} {data.gap > 0 ? '+' : ''}{formatEnergy(data.gap)}
+                {data.gap >= 0 ? t.matching.matchedSurplus : t.matching.matchedGap} {data.gap > 0 ? '+' : ''}{formatEnergy(data.gap)}
               </span>
             </div>
           </div>
@@ -911,7 +962,7 @@ const Matching: React.FC = () => {
             </div>
             <div className="hidden sm:block h-8 w-px bg-gray-200"></div>
             <div className="flex flex-col gap-1 w-full sm:w-auto">
-              <label className="text-[9px] font-black text-gray-400 uppercase ml-1">搜尋電號</label>
+              <label className="text-[9px] font-black text-gray-400 uppercase ml-1">{t.matching.meterSearch}</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                 <input 
@@ -923,7 +974,7 @@ const Matching: React.FC = () => {
                   }}
                   onFocus={() => setIsDropdownOpen(true)}
                   onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
-                  placeholder="輸入電號..."
+                  placeholder={t.matching.enterMeter}
                   className="w-full sm:w-48 pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-black text-[#54585a] outline-none hover:border-[#9CB13A] focus:border-[#9CB13A] transition-colors"
                 />
                 {isDropdownOpen && searchResults.length > 0 && (
@@ -952,8 +1003,12 @@ const Matching: React.FC = () => {
           style={{ height: `${Math.max(460, Math.max(sankeyData.nodes.filter(n => n.type === NodeType.GENERATOR).length, sankeyData.nodes.filter(n => n.type === NodeType.CONSUMER).length) * 85)}px` }}
           className="w-full mb-8 relative overflow-x-auto no-scrollbar flex flex-col"
         >
-          <div className="min-w-[800px] flex-1 pb-4">
-            <SankeyDiagram nodes={sankeyData.nodes} links={sankeyData.links} onLinkClick={setSelectedPath} formattedTime={formattedTime} />
+          <div className="min-w-[800px] flex-1 pb-4 flex flex-col">
+            {sankeyData.links.length > 0 ? (
+              <SankeyDiagram nodes={sankeyData.nodes} links={sankeyData.links} onLinkClick={setSelectedPath} formattedTime={formattedTime} />
+            ) : (
+              <EmptySankeyState />
+            )}
           </div>
           {selectedPath && (
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 bg-white/90 backdrop-blur-2xl p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] animate-in zoom-in-95 duration-200 z-[100]">
@@ -976,29 +1031,37 @@ const Matching: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-gray-900 p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-8 relative z-10">
-            <div className="flex items-center gap-4 md:gap-8 w-full lg:w-auto">
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex items-center gap-4 flex-1 lg:min-w-[180px]">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center text-gray-900 shrink-0">
-                  {solarEfficiency > 0 ? <Sun size={20} className="md:w-6 md:h-6" /> : <Moon size={20} className="md:w-6 md:h-6" />}
-                </div>
-                <div>
-                  <p className="text-[9px] md:text-[10px] font-black text-white/50 uppercase tracking-widest">{t.matching.simulationPoint}</p>
-                  <p className="text-xl md:text-2xl font-black text-white font-mono leading-none">{formattedTime}</p>
-                </div>
-              </div>
+        <div className="bg-white px-8 py-5 rounded-[2rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 left-0 h-1 bg-[#9CB13A]/10 w-full" />
+          <div className="flex items-center gap-8">
+            <button 
+              onClick={() => setIsPlaying(!isPlaying)} 
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${isPlaying ? 'bg-rose-50 text-rose-500 shadow-inner' : 'bg-[#9CB13A]/10 text-[#9CB13A] hover:bg-[#9CB13A]/20'}`}
+            >
+              {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+            </button>
+            
+            <div className="flex items-center gap-3 shrink-0">
+               <div className="space-y-0">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-tight">{t.matching.simulationPoint}</p>
+                  <span className="text-xl font-black text-gray-900 font-mono tracking-tighter leading-none">{formattedTime}</span>
+               </div>
+               <div className="w-1.5 h-1.5 rounded-full bg-[#9CB13A] animate-pulse" />
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-              <button 
-                onClick={() => setIsPlaying(!isPlaying)} 
-                className={`w-full sm:w-auto px-8 md:px-10 py-3 md:py-4 rounded-2xl font-black text-sm transition-all ${isPlaying ? 'bg-red-500 text-white' : 'bg-[#9CB13A] text-white hover:scale-105'}`}
-              >
-                {isPlaying ? '暫停' : '播放'}
-              </button>
-              <div className="w-full sm:w-64">
-                <input type="range" min="0" max="95" value={timeStep} onChange={(e) => setTimeStep(parseInt(e.target.value))} className="w-full h-2 bg-white/20 rounded-full appearance-none accent-[#9CB13A]" />
-              </div>
+
+            <div className="flex-1 relative">
+              <input 
+                type="range" 
+                min="0" 
+                max="95" 
+                value={timeStep} 
+                onChange={(e) => setTimeStep(parseInt(e.target.value))} 
+                className="w-full h-1 bg-gray-100 rounded-full appearance-none accent-[#9CB13A] cursor-pointer hover:bg-gray-200 transition-colors" 
+              />
+              <div 
+                className="absolute top-[8px] left-0 h-1 bg-[#9CB13A] rounded-full pointer-events-none transition-all duration-300"
+                style={{ width: `${(timeStep / 95) * 100}%` }}
+              />
             </div>
           </div>
         </div>
@@ -1212,7 +1275,6 @@ const Matching: React.FC = () => {
                          label={{ value: t.matching.profitUnit, angle: -90, position: 'insideLeft', style: { fontSize: '10px', fontWeight: 'bold', fill: '#94a3b8' } }}
                        />
                        <RechartsTooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '24px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'}} formatter={(val: number) => 'NT$ ' + (Math.round(val || 0)).toLocaleString()} />
-                       <Legend iconType="circle" wrapperStyle={{paddingTop: '20px', fontSize: '10px', fontWeight: 'bold'}} />
                        <Bar dataKey="rePriority" name={t.matching.rePriority} stackId="profit" fill="#10B981" />
                        <Bar dataKey="costOptimized" name={t.matching.costOptimization} stackId="profit" fill="#06B6D4" radius={[6, 6, 0, 0]} />
                     </BarChart>

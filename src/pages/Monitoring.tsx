@@ -27,7 +27,6 @@ const Monitoring: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'purchase' | 'sale'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('2026-02');
   const [pauseModalOpen, setPauseModalOpen] = useState(false);
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const [selectedMeter, setSelectedMeter] = useState<any>(null);
@@ -93,19 +92,6 @@ const Monitoring: React.FC = () => {
       {/* Header with Month Selector and Last Update */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <select 
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="appearance-none pl-6 pr-12 py-3 bg-white border-2 border-gray-100 rounded-2xl font-black text-gray-900 shadow-sm hover:border-[#9CB13A] transition-all outline-none cursor-pointer"
-            >
-              <option value="2026-03">2026 年 3 月</option>
-              <option value="2026-02">2026 年 2 月</option>
-              <option value="2026-01">2026 年 1 月</option>
-              <option value="2025-12">2025 年 12 月</option>
-            </select>
-            <Filter size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl border border-gray-100">
             <Clock size={14} className="text-gray-400" />
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
@@ -463,38 +449,38 @@ const Monitoring: React.FC = () => {
                 <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500">
                   <Pause size={24} />
                 </div>
-                <h3 className="text-xl font-black text-gray-900 tracking-tight">確認暫停此電號？</h3>
+                <h3 className="text-xl font-black text-gray-900 tracking-tight">{t.monitoring.confirmPauseMeter}</h3>
               </div>
               
               <div className="bg-rose-50/50 border border-rose-100 p-4 rounded-2xl mb-6">
                 <p className="text-sm font-bold text-rose-600 leading-relaxed">
-                  暫停期間，此電號將強制退出下一次 AI 電力匹配，不參與任何綠電匹配與計費。
+                  {t.monitoring.pauseWarningDescription}
                 </p>
               </div>
 
               <div className="space-y-4">
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">請選擇暫停原因 (必填)</label>
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">{t.monitoring.pauseModal.selectReason}</label>
                 <select 
                   className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-[#9CB13A] rounded-2xl text-sm font-bold outline-none transition-all appearance-none cursor-pointer"
                   value={pauseReason}
                   onChange={(e) => {
                     setPauseReason(e.target.value);
-                    if (e.target.value !== '其他') {
+                    if (e.target.value !== 'other') {
                       setCustomReason('');
                     }
                   }}
                 >
-                  <option value="">請選擇原因...</option>
-                  <option value="設備維修">設備維修</option>
-                  <option value="台電換錶">台電換錶</option>
-                  <option value="欠費停權">欠費停權</option>
-                  <option value="其他">其他</option>
+                  <option value="">{t.monitoring.pauseModal.placeholder}</option>
+                  <option value="maintenance">{t.monitoring.pauseModal.reasons.maintenance}</option>
+                  <option value="meterChange">{t.monitoring.pauseModal.reasons.meterChange}</option>
+                  <option value="arrears">{t.monitoring.pauseModal.reasons.arrears}</option>
+                  <option value="other">{t.monitoring.pauseModal.reasons.other}</option>
                 </select>
 
-                {pauseReason === '其他' && (
+                {pauseReason === 'other' && (
                   <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                     <textarea
-                      placeholder="請輸入其他暫停原因..."
+                      placeholder={t.monitoring.pauseModal.otherPlaceholder}
                       className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-[#9CB13A] rounded-2xl text-sm font-bold outline-none transition-all resize-none h-24"
                       value={customReason}
                       onChange={(e) => setCustomReason(e.target.value)}
@@ -510,26 +496,28 @@ const Monitoring: React.FC = () => {
                     setPauseReason('');
                     setCustomReason('');
                   }}
-                  className="flex-1 px-6 py-4 bg-[#E7E6E6] text-gray-500 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all active:scale-95"
+                  className="flex-1 px-6 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all active:scale-95"
                 >
-                  取消
+                  {t.common.cancel}
                 </button>
                 <button 
-                  disabled={!pauseReason || (pauseReason === '其他' && !customReason.trim())}
+                  disabled={!pauseReason || (pauseReason === 'other' && !customReason.trim())}
                   onClick={() => {
-                    const finalReason = pauseReason === '其他' ? customReason : pauseReason;
-                    alert(`已暫停電號 ${selectedMeter?.taipowerId}，原因：${finalReason}`);
+                    const finalReason = pauseReason === 'other' 
+                      ? customReason 
+                      : t.monitoring.pauseModal.reasons[pauseReason as keyof typeof t.monitoring.pauseModal.reasons];
+                    alert(`Selected Meter ${selectedMeter?.taipowerId} Paused. Reason: ${finalReason}`);
                     setPauseModalOpen(false);
                     setPauseReason('');
                     setCustomReason('');
                   }}
                   className={`flex-1 px-6 py-4 rounded-2xl font-black text-sm transition-all active:scale-95 ${
-                    (pauseReason && (pauseReason !== '其他' || customReason.trim())) 
-                      ? 'bg-[#54585A] text-white shadow-lg shadow-gray-900/20 hover:bg-[#444749]' 
+                    (pauseReason && (pauseReason !== 'other' || customReason.trim())) 
+                      ? 'bg-[#9CB13A] text-white shadow-lg shadow-[#9CB13A]/20 hover:bg-[#8da134]' 
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  確定暫停
+                  {t.monitoring.pauseModal.confirmPause}
                 </button>
               </div>
             </div>
@@ -546,20 +534,20 @@ const Monitoring: React.FC = () => {
                 <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500">
                   <Play size={24} />
                 </div>
-                <h3 className="text-xl font-black text-gray-900 tracking-tight">確認恢復正常轉供？</h3>
+                <h3 className="text-xl font-black text-gray-900 tracking-tight">{t.monitoring.resumeModal.title}</h3>
               </div>
               
               <div className="space-y-6">
                 <p className="text-sm font-bold text-gray-600 leading-relaxed">
-                  恢復後，此電號將解除暫停鎖定，並重新依照其設定的「生效日」判定狀態。
+                  {t.monitoring.resumeModal.description}
                 </p>
 
                 <div className="bg-amber-50 border border-amber-100 p-6 rounded-2xl">
                   <h4 className="text-amber-700 font-black text-sm mb-2 flex items-center gap-2">
-                    <AlertCircle size={16} /> 【重要提醒】
+                    <AlertCircle size={16} /> {t.monitoring.resumeModal.importantNotice}
                   </h4>
                   <p className="text-xs font-bold text-amber-600 leading-relaxed">
-                    若此次維修有重新向台電送件並取得「新的生效日」，請不要在此直接點擊恢復！請先至「轉供合約版本管理」更新該電號的生效日期，系統將自動為您調整狀態。
+                    {t.monitoring.resumeModal.warningDesc}
                   </p>
                 </div>
               </div>
@@ -567,18 +555,18 @@ const Monitoring: React.FC = () => {
               <div className="flex gap-3 mt-8">
                 <button 
                   onClick={() => setResumeModalOpen(false)}
-                  className="flex-1 px-6 py-4 bg-[#E7E6E6] text-gray-500 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all active:scale-95"
+                  className="flex-1 px-6 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all active:scale-95"
                 >
-                  取消
+                  {t.common.cancel}
                 </button>
                 <button 
                   onClick={() => {
-                    alert(`已恢復電號 ${selectedMeter?.taipowerId} 正常轉供`);
+                    alert(`Selected Meter ${selectedMeter?.taipowerId} Resumed.`);
                     setResumeModalOpen(false);
                   }}
-                  className="flex-[1.5] px-6 py-4 bg-[#9CB13A] text-white rounded-2xl font-black text-sm shadow-lg shadow-[#9CB13A]/20 hover:bg-[#8A9D33] transition-all active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-[1.5] px-6 py-4 bg-[#9CB13A] text-white rounded-2xl font-black text-sm shadow-lg shadow-[#9CB13A]/20 hover:bg-[#8da134] transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
-                  我了解，確定恢復
+                  {t.monitoring.resumeModal.confirmResume}
                 </button>
               </div>
             </div>

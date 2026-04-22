@@ -16,7 +16,8 @@ import {
   Plus,
   X,
   Edit2,
-  Power
+  Power,
+  Info
 } from 'lucide-react';
 import { INITIAL_USERS } from '../mockData';
 import { AccountStatus, User } from '../types';
@@ -118,31 +119,43 @@ const Users: React.FC = () => {
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
-          <div className="absolute right-[-10px] top-[-10px] opacity-[0.03] rotate-12">
-            <UsersIcon size={100} />
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative group">
+          <div className="flex justify-between items-start mb-1">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t.users.totalUsers}</p>
+            <div className="relative group/info">
+              <Info size={14} className="text-gray-300 hover:text-[#9CB13A] cursor-help transition-colors" />
+              <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-slate-800 text-white text-[10px] rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 leading-relaxed font-medium">
+                {t.users.totalUsersDesc}
+              </div>
+            </div>
           </div>
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t.users.totalUsers}</p>
           <h3 className="text-3xl font-black text-[#54585a]">{stats.total} <span className="text-sm font-bold text-gray-400">{t.users.person}</span></h3>
-          <p className="text-[10px] font-bold text-gray-400 mt-2">{t.users.totalUsersDesc}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
-          <div className="absolute right-[-10px] top-[-10px] opacity-[0.03] rotate-12">
-            <ShieldCheck size={100} className="text-[#9CB13A]" />
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative group">
+          <div className="flex justify-between items-start mb-1">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t.users.activeUsers}</p>
+            <div className="relative group/info">
+              <Info size={14} className="text-gray-300 hover:text-[#9CB13A] cursor-help transition-colors" />
+              <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-slate-800 text-white text-[10px] rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 leading-relaxed font-medium">
+                {t.users.activeUsersDesc}
+              </div>
+            </div>
           </div>
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t.users.activeUsers}</p>
           <h3 className="text-3xl font-black text-[#9CB13A]">{stats.active} <span className="text-sm font-bold text-gray-400">{t.users.person}</span></h3>
-          <p className="text-[10px] font-bold text-[#9CB13A]/60 mt-2">{t.users.activeUsersDesc}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
-          <div className="absolute right-[-10px] top-[-10px] opacity-[0.03] rotate-12">
-            <ShieldAlert size={100} className="text-red-500" />
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative group">
+          <div className="flex justify-between items-start mb-1">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t.users.lockedDisabled}</p>
+            <div className="relative group/info">
+              <Info size={14} className="text-gray-300 hover:text-red-500 cursor-help transition-colors" />
+              <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-slate-800 text-white text-[10px] rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 leading-relaxed font-medium">
+                {t.users.lockedDisabledDesc}
+              </div>
+            </div>
           </div>
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t.users.lockedDisabled}</p>
           <h3 className="text-3xl font-black text-red-500">{stats.lockedOrDisabled} <span className="text-sm font-bold text-gray-400">{t.users.person}</span></h3>
-          <p className="text-[10px] font-bold text-red-500/60 mt-2">{t.users.lockedDisabledDesc}</p>
         </div>
       </div>
 
